@@ -38,6 +38,9 @@ jobs:
         run: |
           cd my-medusa-store
           npm install
+          
+      - name: Debug folder structure
+        run: ls -R
 
       - name: Install frontend dependencies
         run: |
