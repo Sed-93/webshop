@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  medusa:
+    build: ./medusa-mobilshop/my-medusa-store
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+      JWT_SECRET: supersecret
+      COOKIE_SECRET: supersecretcookie
+      ADMIN_CORS: http://localhost:8000
+      STORE_CORS: http://localhost:8000
+    ports:
+      - "9000:9000"
+    depends_on:
+      - postgres
+
+  storefront:
+    build: ./medusa-storefront
+    environment:
+      NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://localhost:9000
+      NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: pk_din_publishable_key
+    ports:
+      - "8000:3000"
+    depends_on:
+      - medusa
+
+volumes:
+  pgdata:
