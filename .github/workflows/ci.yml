@@ -25,6 +25,11 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -38,14 +43,29 @@ jobs:
         run: |
           cd my-medusa-store
           npm install
-          
-      - name: Debug folder structure
-        run: ls -R
+
+      - name: Set up .env for backend
+        run: |
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" > my-medusa-store/.env
+          echo "REDIS_URL=redis://localhost:6379" >> my-medusa-store/.env
+          echo "JWT_SECRET=supersecret" >> my-medusa-store/.env
+          echo "COOKIE_SECRET=supersecret" >> my-medusa-store/.env
+
+      - name: Prepare Medusa DB
+        run: |
+          cd my-medusa-store
+          npx medusa db:create
+          npx medusa db:migrate
 
       - name: Install frontend dependencies
         run: |
           cd medusa-storefront
           npm install
+
+      - name: Lint frontend
+        run: |
+          cd medusa-storefront
+          npm run lint || echo "Lint issues"
 
       - name: Run backend tests
         run: |
