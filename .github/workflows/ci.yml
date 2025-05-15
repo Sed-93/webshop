@@ -34,12 +34,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Debug workspace
+      - name: Debug mappstruktur
         run: |
           pwd
-          ls -la ..
-          ls -la ../medusa-storefront || echo "medusa-storefront not found"
-          ls -la ../my-medusa-store || echo "my-medusa-store not found"
+          ls -la
+          ls -la medusa-storefront || echo "Frontend saknas"
+          ls -la medusa-backend || echo "Backend saknas"
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -48,11 +48,11 @@ jobs:
 
       # === Backend ===
       - name: Install backend dependencies
-        working-directory: ../my-medusa-store
+        working-directory: medusa-backend
         run: npm install
 
       - name: Set up .env for backend
-        working-directory: ../my-medusa-store
+        working-directory: medusa-backend
         run: |
           echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" > .env
           echo "REDIS_URL=redis://localhost:6379" >> .env
@@ -60,26 +60,26 @@ jobs:
           echo "COOKIE_SECRET=supersecret" >> .env
 
       - name: Prepare Medusa DB
-        working-directory: ../my-medusa-store
+        working-directory: medusa-backend
         run: |
           npx medusa db:create
           npx medusa db:migrate
 
       - name: Run backend tests
-        working-directory: ../my-medusa-store
+        working-directory: medusa-backend
         run: npm test || echo "No backend tests"
 
       # === Frontend ===
       - name: Install frontend dependencies
-        working-directory: ../medusa-storefront
+        working-directory: medusa-storefront
         run: npm install
 
       - name: Lint frontend
-        working-directory: ../medusa-storefront
+        working-directory: medusa-storefront
         run: npm run lint || echo "Lint issues"
 
       - name: Run frontend tests
-        working-directory: ../medusa-storefront
+        working-directory: medusa-storefront
         run: npm test || echo "No frontend tests"
 
   # === Trivy Scan ===
