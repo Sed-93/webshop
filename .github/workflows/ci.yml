@@ -40,42 +40,38 @@ jobs:
           node-version: '20'
 
       - name: Install backend dependencies
-        run: |
-          cd my-medusa-store
-          npm install
+        working-directory: ./my-medusa-store
+        run: npm install
 
       - name: Set up .env for backend
+        working-directory: ./my-medusa-store
         run: |
-          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" > my-medusa-store/.env
-          echo "REDIS_URL=redis://localhost:6379" >> my-medusa-store/.env
-          echo "JWT_SECRET=supersecret" >> my-medusa-store/.env
-          echo "COOKIE_SECRET=supersecret" >> my-medusa-store/.env
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" > .env
+          echo "REDIS_URL=redis://localhost:6379" >> .env
+          echo "JWT_SECRET=supersecret" >> .env
+          echo "COOKIE_SECRET=supersecret" >> .env
 
       - name: Prepare Medusa DB
+        working-directory: ./my-medusa-store
         run: |
-          cd my-medusa-store
           npx medusa db:create
           npx medusa db:migrate
 
       - name: Install frontend dependencies
-        run: |
-          cd medusa-storefront
-          npm install
+        working-directory: ./medusa-storefront
+        run: npm install
 
       - name: Lint frontend
-        run: |
-          cd medusa-storefront
-          npm run lint || echo "Lint issues"
+        working-directory: ./medusa-storefront
+        run: npm run lint || echo "Lint issues"
 
       - name: Run backend tests
-        run: |
-          cd my-medusa-store
-          npm test || echo "No backend tests"
+        working-directory: ./my-medusa-store
+        run: npm test || echo "No backend tests"
 
       - name: Run frontend tests
-        run: |
-          cd medusa-storefront
-          npm test || echo "No frontend tests"
+        working-directory: ./medusa-storefront
+        run: npm test || echo "No frontend tests"
 
   trivy:
     name: Trivy Security Scan
