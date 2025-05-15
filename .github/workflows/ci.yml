@@ -20,7 +20,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready"
+          --health-cmd=pg_isready
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -34,8 +34,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Debug: list root folders
-        run: ls -la ../ 
+      - name: Debug workspace
+        run: |
+          pwd
+          ls -la
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -44,11 +46,11 @@ jobs:
 
       # === Backend ===
       - name: Install backend dependencies
-        working-directory: ../my-medusa-store
+        working-directory: my-medusa-store
         run: npm install
 
       - name: Set up .env for backend
-        working-directory: ../my-medusa-store
+        working-directory: my-medusa-store
         run: |
           echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" > .env
           echo "REDIS_URL=redis://localhost:6379" >> .env
@@ -56,30 +58,29 @@ jobs:
           echo "COOKIE_SECRET=supersecret" >> .env
 
       - name: Prepare Medusa DB
-        working-directory: ../my-medusa-store
+        working-directory: my-medusa-store
         run: |
           npx medusa db:create
           npx medusa db:migrate
 
       - name: Run backend tests
-        working-directory: ../my-medusa-store
+        working-directory: my-medusa-store
         run: npm test || echo "No backend tests"
 
       # === Frontend ===
       - name: Install frontend dependencies
-        working-directory: ../medusa-storefront
+        working-directory: medusa-storefront
         run: npm install
 
       - name: Lint frontend
-        working-directory: ../medusa-storefront
+        working-directory: medusa-storefront
         run: npm run lint || echo "Lint issues"
 
       - name: Run frontend tests
-        working-directory: ../medusa-storefront
+        working-directory: medusa-storefront
         run: npm test || echo "No frontend tests"
 
-  # === Security Scans ===
-
+  # === Trivy Scan ===
   trivy:
     name: Trivy Security Scan
     runs-on: ubuntu-latest
@@ -91,6 +92,7 @@ jobs:
           scan-type: fs
           scan-ref: .
 
+  # === SonarQube Scan ===
   sonar:
     name: SonarQube Scan
     runs-on: ubuntu-latest
@@ -102,6 +104,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+  # === OWASP Dependency Check ===
   owasp:
     name: OWASP Dependency-Check
     runs-on: ubuntu-latest
